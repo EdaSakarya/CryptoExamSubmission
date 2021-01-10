@@ -1,1 +1,1 @@
-"# CryptoExamSubmission" 
+# CryptoExamSubmission
