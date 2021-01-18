@@ -1,16 +1,59 @@
 pragma solidity ^0.4.17;
 
-// contract ExamFactory {
+contract ExamPool {
 
-//         address[] public deployedExams;
+    struct Administrator{
+        string name;
+        address id;
+    }
 
-//     function createExam(string description, string typeOfWork, string subject, uint submissionTime, address student) public {
-//         address newExamAddress = new ExamDetails(description, typeOfWork, subject, submissionTime, msg.sender, student);
+    Administrator admin;
+    mapping (address => address[]) deployedExamsOfUsers;
+    mapping (address => bool) profs;
+    mapping (address => bool) students;
 
-//       deployedExams.push(newExamAddress);
-//     }
-// }
+    enum UserType{Professor, Student}
 
+    // modifier for restriction to address of Admin
+    modifier restrictedToAdmin() {
+        require(msg.sender == admin.id);
+        _;
+    }
+
+    function createExam(string _description, string _typeOfWork, string _subject, uint _submissionTime, address _student, address _professor) public {
+        address newExamAddress = new ExamDetails(_description, _typeOfWork, _subject, _submissionTime, _student, _professor);
+
+
+        address[] storage deployedExamsOfProf = deployedExamsOfUsers[_professor];
+        deployedExamsOfProf.push(newExamAddress);
+
+        address[] storage deployedExamsOfStudents = deployedExamsOfUsers[_student];
+        deployedExamsOfStudents.push(newExamAddress);
+    }
+
+    function getExamsOfUser(address _user) public view returns(address[]) {
+        return deployedExamsOfUsers[_user];
+    }
+
+    function createUser(int8 _type, address _userAddress) public restrictedToAdmin {
+        if(UserType(_type) == UserType.Professor){
+            profs[_userAddress] = true;
+        }else if (UserType(_type) == UserType.Student) {
+            students[_userAddress] = true;
+        }else{
+
+        }
+    }
+
+    function createAdmin() public{
+        admin.id = msg.sender;
+        admin.name = 'WIN Studierendensekreteriat';
+    }
+
+    function getAdmin() public view returns (string) {
+       return  admin.name;
+    }
+}
 contract ExamDetails {
     struct ExamRoom {
         string description;
@@ -27,7 +70,7 @@ contract ExamDetails {
     }
 
     struct File {
-        bytes32 filename;
+        string filename;
         string ipfshash;
     }
 
@@ -35,20 +78,20 @@ contract ExamDetails {
     enum ExamStatus { toSubmit, submitted, inCorrection, corrected }
     enum ExamTimestamp { createdOn, uploadedOn, downloadedOn, gradedOn, commentedOn }
 
-    // modifirer for restriction to address of Prodessor
+    // modifier for restriction to address of Professor
     modifier restrictedToProf() {
         require(msg.sender == exam.prof);
         _;
     }
 
-    // modifirer for restriction to address of Student
+    // modifier for restriction to address of Student
     modifier restrictedToStudent() {
         require(msg.sender == exam.student);
         _;
     }
 
-    constructor(string _description, string _typeOfWork, string _subject, uint _submissionTime, address _student) public {
-        createExam(_description, _typeOfWork, _subject, _submissionTime, _student, msg.sender);
+    constructor(string _description, string _typeOfWork, string _subject, uint _submissionTime, address _student, address _professor) public {
+        createExam(_description, _typeOfWork, _subject, _submissionTime, _student, _professor);
     }
 
     // function create a new Exam
@@ -71,7 +114,7 @@ contract ExamDetails {
         exam.status = status;
     }
 
-    /*get Functions */
+    /* get Functions */
     // function returns address of student
     function getStudent() public view returns(address) {
         return exam.student;
@@ -109,12 +152,12 @@ contract ExamDetails {
 
     /*
     Student Functions
-    -> all funtions restricted to Student
+    -> all functions restricted to Student
     */
 
     // function allows student to upload a File
-    // Status of exam changes from 'abzugeben' to 'abgegeben'
-    function uploadFile(bytes32 _name, string _ipfshash) public {
+    // Status of exam changes from 'toSubmit' to 'submitted'
+    function uploadFile(string _name, string _ipfshash) public {
         ExamRoom storage newExam= exam;
         require(newExam.status == ExamStatus.toSubmit);
 
@@ -130,7 +173,7 @@ contract ExamDetails {
 
     /*
     Prof Functions
-    -> all funtions restricted to Prof
+    -> all functions restricted to Prof
     */
 
     // function allows prof to write a comment
@@ -141,8 +184,8 @@ contract ExamDetails {
         newExam.comment = _comment;
     }
 
-    // funtion allows to download the exam file
-    // Status changes from 'abgegeben' to 'inKorrektur'
+    // function allows to download the exam file
+    // Status changes from 'submitted' to 'inCorrection'
     function downloadFile() public restrictedToProf {
         require(exam.status != ExamStatus.toSubmit);
         ExamRoom storage newExam= exam;
@@ -150,8 +193,8 @@ contract ExamDetails {
         setStatusOfExam(ExamStatus.inCorrection);
     }
 
-    // function allwos professor to set a Grade
-    // status changes from 'inKorrektur' to 'korrigiert'
+    // function allows professor to set a Grade
+    // status changes from 'inCorrection' to 'corrected'
     function setGrade(uint _grade) public restrictedToProf {
         require(exam.status == ExamStatus.inCorrection);
         ExamRoom storage newExam= exam;
@@ -161,3 +204,6 @@ contract ExamDetails {
     }
 
 }
+
+
+
