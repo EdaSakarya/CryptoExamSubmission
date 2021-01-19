@@ -44,14 +44,9 @@ contract ExamPool {
 
         }
     }
-
     function createAdmin() public{
         admin.id = msg.sender;
         admin.name = 'WIN Studierendensekreteriat';
-    }
-
-    function getAdmin() public view returns (string) {
-       return  admin.name;
     }
 }
 contract ExamDetails {
