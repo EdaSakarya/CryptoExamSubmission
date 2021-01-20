@@ -2,12 +2,7 @@ pragma solidity ^0.4.17;
 
 contract ExamPool {
 
-    struct Administrator{
-        string name;
-        address id;
-    }
-
-    Administrator admin;
+    address admin;
     mapping (address => address[]) deployedExamsOfUsers;
     mapping (address => bool) profs;
     mapping (address => bool) students;
@@ -16,7 +11,7 @@ contract ExamPool {
 
     // modifier for restriction to address of Admin
     modifier restrictedToAdmin() {
-        require(msg.sender == admin.id);
+        require(msg.sender == admin);
         _;
     }
 
@@ -45,8 +40,7 @@ contract ExamPool {
         }
     }
     function createAdmin() public{
-        admin.id = msg.sender;
-        admin.name = 'WIN Studierendensekreteriat';
+        admin = msg.sender;
     }
 }
 contract ExamDetails {
@@ -85,7 +79,7 @@ contract ExamDetails {
         _;
     }
 
-    constructor(string _description, string _typeOfWork, string _subject, uint _submissionTime, address _student, address _professor) public {
+    function ExamDetails(string _description, string _typeOfWork, string _subject, uint _submissionTime, address _student, address _professor) public {
         createExam(_description, _typeOfWork, _subject, _submissionTime, _student, _professor);
     }
 
