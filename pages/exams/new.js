@@ -4,14 +4,14 @@ import {Button, Form, Input, Message, TextArea} from 'semantic-ui-react';
 import factory from '../../ethereum/factory';
 import web3 from '../../ethereum/web3';
 import {Router} from '../../routes';
-import DatePicker from "react-semantic-ui-datepickers";
+import {DateInput, TimeInput, DateTimeInput, DatesRangeInput} from "semantic-ui-calendar-react";
 
 class NewExam extends Component {
     state = {
         professor: '',
         student: '',
         submissionType: '',
-        date: 0,
+        date: '',
         subject: '',
         type: '',
         description: '',
@@ -23,8 +23,10 @@ class NewExam extends Component {
         this.setState({loading: true, errorMessage: ''});
         try {
             const accounts = await web3.eth.getAccounts();
+            console.log(accounts[0]);
             await factory.methods
-                .createExam(this.state.minimumContribution)
+                //.createExam(this.state.description, this.state.type, this.state.submissionType, this.state.subject, this.state.date, this.state.student, this.state.professor)
+                .createExam(this.state.description, this.state.type, 1, this.state.subject, 1575909015, this.state.student, this.state.professor)
                 .send({
                     from: accounts[0]
                 });
@@ -34,6 +36,12 @@ class NewExam extends Component {
         }
         this.setState({loading: false});
     };
+    handleChange = (event, {name, value}) => {
+        if (this.state.hasOwnProperty(name)) {
+            this.setState({ [name]: value });
+        }
+    }
+
 
     render() {
         return (
@@ -57,10 +65,12 @@ class NewExam extends Component {
                         <Form.Group widths='equal'>
                             <Form.Field label='Type of Submission' control='select'>
                                 <option value={this.state.link}
-                                        onChange={event => this.setState({link: event.target.value})}>Upload Link
+                                        onChange={event => this.setState({submissionType: event.target.value})}>Upload
+                                    Link
                                 </option>
                                 <option value={this.state.file}
-                                        onChange={event => this.setState({file: event.target.value})}>Upload File
+                                        onChange={event => this.setState({submissionType: event.target.value})}>Upload
+                                    File
                                 </option>
                             </Form.Field>
                             <Form.Field>
@@ -77,15 +87,20 @@ class NewExam extends Component {
                                        onChange={event => this.setState({type: event.target.value})}
                                 />
                             </Form.Field>
-                            <Form.Field>
-                                <label>Submission date</label>
-                                <DatePicker value={this.state.date}
-                                       onChange={event => this.setState({date: event.target.value})}
-                                />
-                            </Form.Field>
+
+                            <DateInput
+                                name="dateTime"
+                               // placeholder="Date"
+                                label="Submission Date"
+                                value={this.state.date}
+                                onChange={this.handleChange}
+                            />
                         </Form.Group>
-                        <Form.TextArea label="Description" placeholder="Details about the Exam"
-                                       value={this.state.description}/>
+                        <Form.Field>
+                            <label>Description</label>
+                            <Input value={this.state.description}
+                                   onChange={event => this.setState({description: event.target.value})}/>
+                        </Form.Field>
                         <Message error header="Oops!" content={this.state.errorMessage}/>
                         <Button loading={this.state.loading} type='submit' primary>Create!</Button>
                     </Form>

@@ -12,7 +12,7 @@ export default () => {
             </Link>
             <Menu.Menu position="right">
                 <Link route="/">
-                    <a className="item">Exams</a>
+                    <a className="item">All Exams</a>
                 </Link>
                 <Link route="/exams/new">
                     <a className="item">+</a>

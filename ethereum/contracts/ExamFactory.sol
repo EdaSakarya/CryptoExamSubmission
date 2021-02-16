@@ -119,11 +119,12 @@ contract ExamSubmission {
     }
 
     // function returns a getSummary of the exam
-    function getDetailsOfExam() public view returns(string memory, string memory, string memory, uint, uint, string memory, address, address, ExamStatus){
+    function getDetailsOfExam() public view returns(string memory, string memory, string memory,uint, uint, uint, string memory, address, address, ExamStatus){
         return(
         exam.description,
         exam.subject,
         exam.typeOfWork,
+        exam.typeOfSubmission,
         exam.submissionTime,
         exam.grade,
         exam.comment,
@@ -162,6 +163,10 @@ contract ExamSubmission {
 
         newExam.timestamp[uint(ExamTimestamp.UploadedOn)] = now;
         setStatusOfExam(ExamStatus.Submitted);
+    }
+    function getTypeOfSubmit() restrictedToStudent public view returns(uint){
+        ExamRoom storage newExam = exam;
+        return exam.typeOfSubmission;
     }
 
     /*
