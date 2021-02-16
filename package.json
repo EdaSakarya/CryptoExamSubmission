@@ -11,17 +11,19 @@
   "license": "ISC",
   "dependencies": {
     "fs-extra": "^9.0.1",
-    "ganache-cli": "^6.0.3",
-    "mocha": "^4.0.1",
+    "ganache-cli": "^6.12.1",
+    "mocha": "^8.2.1",
     "next": "^4.1.4",
     "next-routes": "^1.2.0",
     "react": "^16.2.0",
     "react-dom": "^16.2.0",
+    "react-semantic-ui-datepickers": "^2.13.0",
+    "semantic-ui-calendar": "0.0.8",
     "semantic-ui-css": "^2.4.1",
     "semantic-ui-react": "^2.0.1",
     "semantic-ui-react-input-file": "^1.0.3",
-    "solc": "^0.4.17",
+    "solc": "^0.4.16",
     "truffle-hdwallet-provider": "0.0.3",
-    "web3": "^1.0.0-beta.26"
+    "web3": "^1.0.0-beta.28"
   }
 }
