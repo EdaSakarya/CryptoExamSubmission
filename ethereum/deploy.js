@@ -1,7 +1,7 @@
 const HDWalletProvider = require('truffle-hdwallet-provider');
 const Web3 = require('web3');
 //TODO: writing correct Contract JSON file
-const compiledFactory = require('./build/[ContractJSON].json');
+const compiledFactory = require('./build/ExamPool.json');
 
 const provider = new HDWalletProvider(
     'seat level rough increase tornado skill firm ozone endless lawsuit erupt addict',
@@ -25,4 +25,5 @@ const deploy = async () => {
 };
 
 deploy();
+
 
