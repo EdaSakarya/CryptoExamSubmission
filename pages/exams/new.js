@@ -15,6 +15,7 @@ class NewExam extends Component {
         subject: '',
         type: '',
         description: '',
+        errorMessage: '',
         loading: false
     };
     onSubmit = async (event) => {
