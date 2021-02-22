@@ -4,7 +4,7 @@ import ExamPool from './build/ExamPool.json';
 
 const instance = new web3.eth.Contract(
     JSON.parse(ExamPool.interface),
-    '0xF7A263c82c71d17599B6037215C69Fb9DF1b7598'
+    '0x4A4248ed37536737D002362dE0Da255e8F4c0194'
 );
 
 export default instance;

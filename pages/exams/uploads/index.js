@@ -3,14 +3,13 @@ import Layout from "../../../components/Layout";
 import {Button, Form, Input, Message, Table} from "semantic-ui-react";
 import {Link, Router} from "../../../routes";
 import Exam from '../../../ethereum/exam';
-import RequestRow from "../../../components/RequestRow";
-import {DateInput} from "semantic-ui-calendar-react";
 import web3 from "../../../ethereum/web3";
-import factory from "../../../ethereum/factory";
+import {InputFile} from "semantic-ui-react-input-file/src/InputFile";
 
 class RequestIndex extends Component {
     state = {
-        upload:'',
+        title: '',
+        upload: '',
         errorMessage: '',
         loading: false
     };
@@ -20,7 +19,7 @@ class RequestIndex extends Component {
         const details = await exam.methods.getDetailsOfExam().call();
         return {
             exam,
-            address:props.query.address,
+            address: props.query.address,
             subject: details[1],
             typeOfSubmission: details[3],
             submissionTime: details[4],
@@ -29,6 +28,7 @@ class RequestIndex extends Component {
             status: details[9]
         };
     }
+
     onSubmit = async (event) => {
         event.preventDefault();
         const exam = Exam(this.props.address);
@@ -36,8 +36,11 @@ class RequestIndex extends Component {
         try {
             const accounts = await web3.eth.getAccounts();
             console.log(accounts[0]);
+            if (this.state.title == '') {
+                this.setState({title: this.state.upload})
+            }
             await exam.methods
-                 .submitExam('SUBMITtest', this.state.upload)
+                .submitExam(this.state.title, this.state.upload)
                 .send({
                     from: accounts[0]
                 });
@@ -48,23 +51,40 @@ class RequestIndex extends Component {
         this.setState({loading: false});
     }
 
-    render() {
-        let uploadType;
-        if(this.props.TypeOfSubmission == 0){
-            uploadType='File Upload';
-        }else if(this.props.TypeOfSubmission == 1){
-            uploadType='Link Upload';
+    renderUploadType() {
+
+        if (this.props.typeOfSubmission== 0) {
+            return <div>
+                <label>Upload File</label>
+                <Input value={this.state.upload}
+                       type='file'
+                       onChange={event => this.setState({upload: event.target.value})}
+                       action={{icon: 'upload icon'}}>
+                </Input></div>
+        } else {
+            return <div>
+                <label>Upload Link</label>
+                <Input value={this.state.upload}
+                       onChange={event => this.setState({upload: event.target.value})}
+                       action={{icon: 'link icon'}}>
+                </Input></div>
         }
+    }
+
+    render() {
         return (
             <Layout>
                 <h1> Exam Upload </h1>
                 <h5>{this.props.subject}</h5>
                 <Form onSubmit={this.onSubmit} error={!!this.state.errorMessage}>
                     <Form.Field>
-                        <label>{uploadType}</label>
-                        <Input value={this.state.upload}
-                               onChange={event => this.setState({upload: event.target.value})}
+                        <label>Title</label>
+                        <Input value={this.state.title}
+                               onChange={event => this.setState({title: event.target.value})}
                         />
+                    </Form.Field>
+                    <Form.Field>
+                        {this.renderUploadType()}
                     </Form.Field>
                     <Message error header="Oops!" content={this.state.errorMessage}/>
                     <Button loading={this.state.loading} type='submit' primary>Upload & Save</Button>

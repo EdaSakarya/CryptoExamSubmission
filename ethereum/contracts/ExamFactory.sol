@@ -2,19 +2,21 @@ pragma solidity ^0.4.17;
 
 contract ExamPool {
 
-    address admin;
+    const admin;
     mapping (address => address[]) deployedExamsOfUsers;
+    mapping (address => string) descriptionOfExams;
     mapping (address => bool) profs;
     mapping (address => bool) students;
     enum UserType{Professor, Student}
 
     // modifirer for restriction to address of Admin
     modifier restrictedToAdmin() {
-        require(msg.sender == admin);
+        require(admin[msg.sender]);
         _;
     }
 
     function createExam(string memory _description, string memory _typeOfWork, uint8 _typeOfSubmission, string memory _subject, uint  _submissionTime, address _student, address _professor) public restrictedToAdmin {
+        require(profs[_professor] && students[_student]);
         ExamSubmission newExamAddress = new ExamSubmission(_description, _typeOfWork, _typeOfSubmission, _subject, _submissionTime, _student, _professor);
 
         address[] storage deployedExamsOfProf = deployedExamsOfUsers[_professor];
@@ -22,10 +24,15 @@ contract ExamPool {
 
         address[] storage deployedExamsOfStudents = deployedExamsOfUsers[_student];
         deployedExamsOfStudents.push(address(newExamAddress));
+
+        descriptionOfExams[address(newExamAddress)] = _description;
     }
 
     function getExamsOfUser(address _user) public view returns(address[] memory) {
         return deployedExamsOfUsers[_user];
+    }
+    function getDescriptionOfExam(address _exam) public view returns(string){
+        return descriptionOfExams[_exam];
     }
 
     function createUser(int8 _type, address _userAddress) public restrictedToAdmin {
@@ -38,7 +45,7 @@ contract ExamPool {
     }
 
     function createAdmin() public{
-        admin = msg.sender;
+        admin[msg.sender] = true;
     }
 }
 contract ExamSubmission {
@@ -119,7 +126,7 @@ contract ExamSubmission {
     }
 
     // function returns a getSummary of the exam
-    function getDetailsOfExam() public view returns(string memory, string memory, string memory,uint, uint, uint, string memory, address, address, ExamStatus){
+    function getDetailsOfExam() public view returns(string, string memory, string memory,uint, uint, uint, string memory, address, address, ExamStatus){
         return(
         exam.description,
         exam.subject,
@@ -164,9 +171,9 @@ contract ExamSubmission {
         newExam.timestamp[uint(ExamTimestamp.UploadedOn)] = now;
         setStatusOfExam(ExamStatus.Submitted);
     }
-    function getTypeOfSubmit() restrictedToStudent public view returns(uint){
+    function getTypeOfSubmit() public view returns(uint){
         ExamRoom storage newExam = exam;
-        return exam.typeOfSubmission;
+        return newExam.typeOfSubmission;
     }
 
     /*
@@ -183,12 +190,11 @@ contract ExamSubmission {
     }
 
     // function allows to download the exam file
-    function downloadExam() public view returns(string memory) {
+    function downloadExam() public view returns(string) {
         ExamRoom memory newExam = exam;
         require(newExam.status != ExamStatus.ToSubmit);
         Data memory data = newExam.data;
-        string memory output= data.ipfshashORlink;
-        return output;
+        return data.ipfshashORlink;
     }
 
     // function allows professor to set a Grade
