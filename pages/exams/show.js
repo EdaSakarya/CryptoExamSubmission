@@ -1,17 +1,27 @@
 import React, {Component} from 'react';
 import Layout from "../../components/Layout";
 import Exam from '../../ethereum/exam';
-import {Card, Grid, Button} from 'semantic-ui-react';
+import {Progress, Card, Grid, Form, Button, Divider, Header, Input, Message} from 'semantic-ui-react';
 import {Link, Router} from '../../routes';
 import web3 from "../../ethereum/web3";
+import factory from "../../ethereum/factory";
 
 class ExamDetailsShow extends Component {
+    state = {
+        errorMessage: '',
+        errormessage2: '',
+        errormessage3: '',
+        grade: '',
+        comment: '',
+        download: '',
+        loading: false
+    };
+
     static async getInitialProps(props) {
         const exam = Exam(props.query.address);
         const details = await exam.methods.getDetailsOfExam().call();
         const accounts = await web3.eth.getAccounts();
         console.log(accounts[0]);
-
         return {
             account: accounts[0],
             address: props.query.address,
@@ -65,7 +75,10 @@ class ExamDetailsShow extends Component {
                 meta: 'Professor Hash',
                 style: {overflowWrap: 'break-word'}
             },
-
+            {
+                header: statusContent,
+                meta: 'Status'
+            },
             {
                 header: subject,
                 meta: 'Subject'
@@ -86,10 +99,6 @@ class ExamDetailsShow extends Component {
             {
                 header: comment,
                 meta: 'Comments of Professor'
-            },
-            {
-                header: statusContent,
-                meta: 'Status'
             }
 
         ];
@@ -100,59 +109,99 @@ class ExamDetailsShow extends Component {
         event.preventDefault();
         const exam = Exam(this.props.address);
         try {
-            const accounts = await web3.eth.getAccounts();
-            console.log(accounts[0]);
             const output = await exam.methods
                 .downloadExam()
                 .call();
             console.log(output);
             this.setState({download: output});
         } catch (err) {
-            this.setState({errorMessage: err.message});
+            this.setState({errormessage2: err.message});
         }
     }
 
-    async renderOnlyStudent() {
-        //  const currentTime = Math.round(new Date().getTime() / 1000);
-        const currentTime = 12123;
-        const accounts = await web3.eth.getAccounts();
-        console.log(accounts[0]);
-        console.log(accounts[0] == this.props.student);
-        if (accounts[0] === this.props.student) { /*&& this.props.submissionTime >= currentTime ){*/
-            return <div>
-                <Link route={`/exams/${this.props.address}/uploads`}>
-                    <a>
-                        <Button primary>Upload</Button>
-                    </a>
-                </Link>
-            </div>
-        } else {
-            return <h1>${currentTime} </h1>
+    setInCorrection = async (event) => {
+        event.preventDefault();
+        const exam = Exam(this.props.address);
+        try {
+            const accounts = await web3.eth.getAccounts();
+            //console.log(accounts[0]);
+            const output = await exam.methods
+                .setStatusInCorrection()
+                .send({
+                    from: accounts[0]
+                });
+            this.setState({download: output});
+        } catch (err) {
+            this.setState({errormessage3: err.message});
         }
     }
 
     render() {
+        const {status, student, account, professor, submissionTime} = this.props;
         return (
             <Layout>
                 <h2>{this.props.description}</h2>
                 <Grid>
                     <Grid.Row>
-                        <Grid.Column width={14}>
+                        <Grid.Column width={12}>
                             {this.renderCards()}
                         </Grid.Column>
-                        <Grid.Column width={2}>
-                          {/*  {this.renderOnlyStudent}*/}
-                        </Grid.Column>
-                    </Grid.Row>
-                    {/*<Grid.Row>
+                        <Grid.Column width={4}>
+                            {status >= 1 &&
+                            <div>
+                                <Divider horizontal>
+                                    <Header as='h6'>
+                                        download & upload
+                                    </Header>
+                                </Divider>
+                                <Button onClick={this.getDownload}>Download</Button>
+                            </div>
+                            }
+                            <br/><br/>
+                            {professor == account ? null : (
+                                <div>{status < 2 &&
+                                <Link route={`/exams/${this.props.address}/uploads`}>
+                                    <a>
+                                        <Button primary>Upload</Button>
+                                    </a>
+                                </Link>}
+                                </div>
+                            )}
+                            <br/><br/>
+                            {student == account ? null : (
+                                <div>
+                                    <Divider horizontal>
+                                        <Header as='h6'>
+                                            grade & comment
+                                        </Header>
+                                    </Divider>
 
-                    </Grid.Row>*/}
-                    <Grid.Row>
-                        <Button onClick={this.getDownload}> Download</Button>
+                                    {status == 1 &&
+                                    <Button color='red' onClick={this.setInCorrection}>SET IN CORRECTION</Button>
+                                    }
+                                    <br/><br/>
+                                    <div>
+                                        {status == 2 &&
+                                        <Link route={`/exams/${this.props.address}/grading`}>
+                                            <Button color='orange'>GRADING</Button>
+                                        </Link>
+                                        }
+                                    </div>
+                                    <div>
+                                        {status > 2 &&
+                                        <Link route={`/exams/${this.props.address}/comment`}>
+                                            <Button color='green'>COMMENT</Button>
+                                        </Link>
+                                        }
+                                    </div>
+                                </div>
+                            )}
+                        </Grid.Column>
                     </Grid.Row>
                 </Grid>
             </Layout>
-        );
+        )
+            ;
     }
 }
 

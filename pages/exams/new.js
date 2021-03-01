@@ -1,6 +1,6 @@
 import React, {Component} from 'react';
 import Layout from "../../components/Layout";
-import {Button, Divider, Form, FormField, Header, Icon, Input, Message, Select} from 'semantic-ui-react';
+import {Button, Divider, Form, Header, Icon, Input, Message, Select} from 'semantic-ui-react';
 import factory from '../../ethereum/factory';
 import web3 from '../../ethereum/web3';
 import {Router} from '../../routes';
@@ -139,7 +139,7 @@ class NewExam extends Component {
                         <Button loading={this.state.loading} type='submit' fluid inverted color='red'>Create
                             Exam</Button>
                     </Form>
-                    <br/>
+                    <br/><br/>
                     <Divider horizontal>
                         <Header as='h4'>
                             <Icon name='address book icon'/>

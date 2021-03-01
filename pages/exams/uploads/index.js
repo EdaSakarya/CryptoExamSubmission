@@ -6,7 +6,7 @@ import Exam from '../../../ethereum/exam';
 import web3 from "../../../ethereum/web3";
 import {InputFile} from "semantic-ui-react-input-file/src/InputFile";
 
-class RequestIndex extends Component {
+class UploadIndex extends Component {
     state = {
         title: '',
         upload: '',
@@ -94,4 +94,4 @@ class RequestIndex extends Component {
     }
 }
 
-export default RequestIndex;
+export default UploadIndex;
