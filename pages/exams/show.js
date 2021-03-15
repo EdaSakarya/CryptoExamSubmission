@@ -181,16 +181,9 @@ class ExamDetailsShow extends Component {
                                     }
                                     <br/><br/>
                                     <div>
-                                        {status == 2 &&
+                                        {status == 2 && student != account &&
                                         <Link route={`/exams/${this.props.address}/grading`}>
                                             <Button color='orange'>GRADING</Button>
-                                        </Link>
-                                        }
-                                    </div>
-                                    <div>
-                                        {status > 2 &&
-                                        <Link route={`/exams/${this.props.address}/comment`}>
-                                            <Button color='green'>COMMENT</Button>
                                         </Link>
                                         }
                                     </div>

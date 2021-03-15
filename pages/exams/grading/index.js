@@ -9,6 +9,7 @@ class GradingIndex extends Component {
 
     state = {
         grade: '',
+        comment: '',
         errorMessage: '',
         loading: false
     };
@@ -29,7 +30,7 @@ class GradingIndex extends Component {
         try {
             const accounts = await web3.eth.getAccounts();
             const gradeOut = await exam.methods
-                .setGrade(this.state.grade)
+                .setGradeAndComment(this.state.grade, this.state.comment)
                 .send({
                     from: accounts[0]
                 });
@@ -50,6 +51,11 @@ class GradingIndex extends Component {
                         <label>Grade</label>
                         <Input value={this.state.grade}
                                onChange={event => this.setState({grade: event.target.value})}/>
+                    </Form.Field>
+                    <Form.Field>
+                        <label>Comment</label>
+                        <Input value={this.state.comment}
+                               onChange={event => this.setState({comment: event.target.value})}/>
                     </Form.Field>
                     <Message error header="Oops!" content={this.state.errorMessage}/>
                     <Button loading={this.state.loading} type='submit' fluid primary

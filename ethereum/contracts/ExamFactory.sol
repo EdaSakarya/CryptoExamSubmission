@@ -2,9 +2,9 @@ pragma solidity ^0.4.17;
 
 contract ExamPool {
 
-    const admin;
+    mapping (address => bool) admin;
     mapping (address => address[]) deployedExamsOfUsers;
-    mapping (address => string) descriptionOfExams;
+    mapping (address => string) descriptionOfDeployedExams;
     mapping (address => bool) profs;
     mapping (address => bool) students;
     enum UserType{Professor, Student}
@@ -25,20 +25,22 @@ contract ExamPool {
         address[] storage deployedExamsOfStudents = deployedExamsOfUsers[_student];
         deployedExamsOfStudents.push(address(newExamAddress));
 
-        descriptionOfExams[address(newExamAddress)] = _description;
+        descriptionOfDeployedExams[newExamAddress]= _description;
     }
 
     function getExamsOfUser(address _user) public view returns(address[] memory) {
         return deployedExamsOfUsers[_user];
     }
-    function getDescriptionOfExam(address _exam) public view returns(string){
-        return descriptionOfExams[_exam];
+
+    function getExamsDescriptionsOfUser(address _exam) public view returns(string) {
+        return descriptionOfDeployedExams[_exam];
     }
 
     function createUser(int8 _type, address _userAddress) public restrictedToAdmin {
         require(!profs[_userAddress] && !students[_userAddress]);
         if(UserType(_type) == UserType.Professor){
             profs[_userAddress] = true;
+
         }else if (UserType(_type) == UserType.Student) {
             students[_userAddress] = true;
         }
@@ -47,10 +49,11 @@ contract ExamPool {
     function createAdmin() public{
         admin[msg.sender] = true;
     }
+
 }
 contract ExamSubmission {
 
-    struct ExamRoom {
+    struct ExamDetails {
         string description;
         string subject;
         string typeOfWork;
@@ -65,17 +68,19 @@ contract ExamSubmission {
         Data data;
     }
 
+
     struct Data {
         string nameOfData;
         // string can be a link or a ipfshash
         string ipfshashORlink;
     }
 
-    ExamRoom exam;
+    ExamDetails exam;
     Data fileData;
     enum ExamStatus { ToSubmit, Submitted, InCorrection, Corrected }
     enum ExamTimestamp { CreatedOn, UploadedOn, InCorrectionOn, GradedOn, CommentedOn }
     enum TypeOfSubmission { Upload, Link }
+
 
     // modifier for restriction to address of Professor
     modifier restrictedToProf() {
@@ -95,7 +100,7 @@ contract ExamSubmission {
 
     // function create a new Exam
     function createExam(string memory _description, string memory _typeOfWork, uint8 _typeOfSubmission, string memory _subject, uint _submissionTime, address _student, address _prof) private {
-        ExamRoom storage newExam= exam;
+        ExamDetails storage newExam= exam;
 
         newExam.description = _description;
         newExam.timestamp[uint(ExamTimestamp.CreatedOn)] = now;
@@ -159,7 +164,7 @@ contract ExamSubmission {
     // function allows student to upload a File
     // Status of exam changes from 'toSubmit' to 'submitted'
     function submitExam(string memory _name, string memory _input) restrictedToStudent public {
-        ExamRoom storage newExam = exam;
+        ExamDetails storage newExam = exam;
         require(newExam.status == ExamStatus.ToSubmit || (newExam.status != ExamStatus.InCorrection && newExam.status != ExamStatus.Corrected));
         Data memory data = Data({
         nameOfData:_name,
@@ -171,8 +176,8 @@ contract ExamSubmission {
         newExam.timestamp[uint(ExamTimestamp.UploadedOn)] = now;
         setStatusOfExam(ExamStatus.Submitted);
     }
-    function getTypeOfSubmit() public view returns(uint){
-        ExamRoom storage newExam = exam;
+    function getTypeOfSubmit() restrictedToStudent public view returns(uint){
+        ExamDetails storage newExam = exam;
         return newExam.typeOfSubmission;
     }
 
@@ -182,16 +187,16 @@ contract ExamSubmission {
     */
 
     // function allows prof to write a comment
-    function setComment(string memory _comment) public restrictedToProf {
+    function setComment(string memory _comment) private restrictedToProf {
         require(exam.status != ExamStatus.ToSubmit);
-        ExamRoom storage newExam= exam;
+        ExamDetails storage newExam= exam;
         newExam.timestamp[uint(ExamTimestamp.CommentedOn)] = now;
         newExam.comment = _comment;
     }
 
     // function allows to download the exam file
     function downloadExam() public view returns(string) {
-        ExamRoom memory newExam = exam;
+        ExamDetails memory newExam = exam;
         require(newExam.status != ExamStatus.ToSubmit);
         Data memory data = newExam.data;
         return data.ipfshashORlink;
@@ -199,17 +204,19 @@ contract ExamSubmission {
 
     // function allows professor to set a Grade
     // status changes from 'inCorrection' to 'corrected'
-    function setGrade(uint _grade) public restrictedToProf {
+    function setGradeAndComment(uint _grade, string _comment) public restrictedToProf {
         require(exam.status == ExamStatus.InCorrection || exam.status == ExamStatus.Corrected);
-        ExamRoom storage newExam= exam;
+        ExamDetails storage newExam= exam;
         newExam.timestamp[uint(ExamTimestamp.GradedOn)] = now;
         newExam.grade = _grade;
+        newExam.timestamp[uint(ExamTimestamp.CommentedOn)] = now;
+        newExam.comment = _comment;
         setStatusOfExam(ExamStatus.Corrected);
     }
 
     // function allows professor to set the exam in Correction (in Frontend it should be a button)
     function setStatusInCorrection() public restrictedToProf{
-        ExamRoom storage newExam = exam;
+        ExamDetails storage newExam = exam;
         require(newExam.status == ExamStatus.Submitted);
         newExam.status = ExamStatus.InCorrection;
         newExam.timestamp[uint(ExamTimestamp.InCorrectionOn)] = now;
