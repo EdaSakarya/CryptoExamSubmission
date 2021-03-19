@@ -1,17 +1,29 @@
 import React, {Component} from 'react';
 import Layout from "../../components/Layout";
-import {Button, Divider, Form, Header, Icon, Input, Message, Select} from 'semantic-ui-react';
+import {Button, Divider, Form, Header, Icon, Input, Message} from 'semantic-ui-react';
+import Select from 'react-select';
 import factory from '../../ethereum/factory';
 import web3 from '../../ethereum/web3';
 import {Router} from '../../routes';
-import {DateInput, TimeInput, DateTimeInput, DatesRangeInput} from "semantic-ui-calendar-react";
+import TextField from '@material-ui/core/TextField';
+
+const userOptions = [
+    {value: 0, label: 'Student'},
+    {value: 1, label: 'Professor'},
+];
+const typeOptions = [
+    {value: 0, label: 'File'},
+    {value: 1, label: 'Link'},
+];
 
 class NewExam extends Component {
+
     state = {
         professor: '',
         student: '',
         submissionType: '',
         date: '',
+        timestamp: '',
         subject: '',
         type: '',
         description: '',
@@ -25,6 +37,7 @@ class NewExam extends Component {
         file: '',
         loading: false
     };
+
     onSubmit = async (event) => {
         event.preventDefault();
 
@@ -33,14 +46,14 @@ class NewExam extends Component {
             const accounts = await web3.eth.getAccounts();
             console.log(accounts[0]);
             await factory.methods
-                //.createExam(this.state.description, this.state.type, this.state.submissionType, this.state.subject, this.state.date, this.state.student, this.state.professor)
-                .createExam(this.state.description, this.state.type, 1, this.state.subject, 1627052035, this.state.student, this.state.professor)
-                /*.createExam('Aufgaben zu SQL-Abfragen', 'Labor Aufgaben 1', 1, 'Datenbanken Labor', 1629046800, 0xC0B6efb2Bd712884FD94ff410aE9Bd152Ae8fa8e, 0xCBB1BE6Ca524A4147f4bfa3D775fe095d9db2efC
-                )*/
+                .createExam(this.state.description, this.state.type, this.state.submissionType, this.state.subject, this.state.timestamp, this.state.student, this.state.professor)
+                //.createExam(this.state.description, this.state.type, 1, this.state.subject, this.state.timestamp, this.state.student, this.state.professor)
+                /*.createExam('Lektion 4 Aufgaben', 'Labor Aufgaben 1', 1 ,'ITSM Labor', 1629046800, 0xC0B6efb2Bd712884FD94ff410aE9Bd152Ae8fa8e, 0xCBB1BE6Ca524A4147f4bfa3D775fe095d9db2efC
+                */
                 .send({
                     from: accounts[0]
                 });
-            Router.pushRoute('/');
+            // Router.pushRoute('/');
         } catch (err) {
             this.setState({errorMessage1: err.message});
         }
@@ -54,7 +67,7 @@ class NewExam extends Component {
         try {
             const accounts = await web3.eth.getAccounts();
             await factory.methods
-                .createUser('1', this.state.userKey)
+                .createUser(this.state.userType, this.state.userKey)
                 .send({
                     from: accounts[0]
                 });
@@ -65,13 +78,23 @@ class NewExam extends Component {
         this.setState({loading: false});
     };
 
-    handleChange = (event, {name, value}) => {
-        if (this.state.hasOwnProperty(name)) {
-            this.setState({[name]: value});
-        }
+    handleChangeUser = userType => {
+        this.setState({userType: userType.value});
+        console.log(`Option selected:`, this.state.userType);
+    }
+    handleChangeType = async type => {
+        this.setState({submissionType: type.value});
+        console.log(`Option selected:`, this.state.submissionType);
+    }
+
+    handleChangeTime = time => {
+        let date = Date.parse(time.target.value);
+        this.setState({timestamp: date});
+        console.log('Time and Date Set: ', date);
     }
 
     render() {
+        const {userType, submissionType} = this.state;
         return (
             <div>
                 <Layout>
@@ -96,17 +119,14 @@ class NewExam extends Component {
                                    onChange={event => this.setState({student: event.target.value})}
                             />
                         </Form.Field>
+                        <Select value={submissionType}
+                                onChange={this.handleChangeType}
+                                options={[
+                                    {value: 0, label: 'File'},
+                                    {value: 1, label: 'Link'},
+                                ]}
+                        />
                         <Form.Group widths='equal'>
-                            <Form.Field label='Type of Submission' control='select'>
-                                <option value={this.state.link}
-                                        onChange={event => this.setState({submissionType: 1})}>Upload
-                                    Link
-                                </option>
-                                <option value={this.state.file}
-                                        onChange={event => this.setState({submissionType: 0})}>Upload
-                                    File
-                                </option>
-                            </Form.Field>
                             <Form.Field>
                                 <label>Subject</label>
                                 <Input value={this.state.subject}
@@ -122,12 +142,44 @@ class NewExam extends Component {
                                 />
                             </Form.Field>
 
-                            <DateInput
+                            {/* <DateInput
                                 name="dateTime"
                                 // placeholder="Date"
-                                label="Submission Date"
+                                clearable
+                                closable
+                                //label="Submission Date"
+                                //value={this.state.date}
+                                iconPosition="left"
+                                onChange={this.handleChangeTime}
+                            />
+                            <DateTimeInput
+                                name="dateTime"
+                                clearable
+                                closable
+                                markColor
                                 value={this.state.date}
-                                onChange={this.handleChange}
+                                iconPosition="left"
+                                onChange={this.handleChangeTime}
+                            />*/}
+                            {/* <TimeInput
+                                name="time"
+                                //placeholder="Time"
+                                clearable
+                                closable
+                                //value={this.state.time}
+                                iconPosition="left"
+                                onChange={this.handleChangeTime}
+                            />*/}
+
+                            <TextField
+                                id="datetime-local"
+                                label="Next appointment"
+                                type="datetime-local"
+                                defaultValue="2017-05-24T10:30"
+                                InputLabelProps={{
+                                    shrink: true,
+                                }}
+                                onChange={this.handleChangeTime}
                             />
                         </Form.Group>
                         <Form.Field>
@@ -147,15 +199,8 @@ class NewExam extends Component {
                         </Header>
                     </Divider>
                     <Form onSubmit={this.onSubmitUser} error={!!this.state.errorMessage2}>
-                        <Form.Field label='Type of Submission' control='select'>
-
-                            <option value={this.state.typeProf}
-                                    onChange={event => this.setState({userType: event.target.value})}>Professor
-                            </option>
-                            <option value={this.state.typeStud}
-                                    onChange={event => this.setState({userType: event.target.value})}> Student
-                            </option>
-                        </Form.Field>
+                        <Select value={userType} onChange={this.handleChangeUser}
+                                options={userOptions}/>
                         <Form.Field>
                             <label>User Key</label>
                             <Input value={this.state.userKey}
