@@ -61,8 +61,7 @@ class ExamDetailsShow extends Component {
             student,
             prof
         } = this.props;
-
-        const dateTime = new Date(submissionTime * 1000);
+        const dateTime = new Date(parseInt(submissionTime));
 
         const items = [
             {
@@ -89,7 +88,7 @@ class ExamDetailsShow extends Component {
                 meta: 'Type of Work'
             },
             {
-                header: dateTime.toLocaleString(),
+                header: dateTime.toLocaleString('de-DE'),
                 meta: 'Submission Time and Date'
             },
             {
@@ -159,7 +158,7 @@ class ExamDetailsShow extends Component {
                             }
                             <br/><br/>
                             {professor == account ? null : (
-                                <div>{status < 2 &&
+                                <div>{status < 2 && submissionTime < Date.now() &&
                                 <Link route={`/exams/${this.props.address}/uploads`}>
                                     <a>
                                         <Button primary>Upload</Button>
