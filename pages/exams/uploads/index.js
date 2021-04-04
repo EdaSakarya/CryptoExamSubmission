@@ -4,6 +4,7 @@ import {Button, Form, Input, Message, Table} from "semantic-ui-react";
 import {Link, Router} from "../../../routes";
 import Exam from '../../../ethereum/exam';
 import web3 from "../../../ethereum/web3";
+import ipfs from "../../ipfs";
 import {InputFile} from "semantic-ui-react-input-file/src/InputFile";
 
 class UploadIndex extends Component {
@@ -11,6 +12,8 @@ class UploadIndex extends Component {
         title: '',
         upload: '',
         errorMessage: '',
+        buffer: '',
+        hash: '',
         loading: false
     };
 
@@ -35,32 +38,46 @@ class UploadIndex extends Component {
         this.setState({loading: true, errorMessage: ''});
         try {
             const accounts = await web3.eth.getAccounts();
-            console.log(accounts[0]);
             if (this.state.title == '') {
                 this.setState({title: this.state.upload})
             }
+            const ipfsHASH =await ipfs.add({path:this.state.title, content:this.state.buffer}).then((response) => {
+                this.setState({hash: response[0].hash});
+                console.log(this.state.hash);
+            });
             await exam.methods
-                .submitExam(this.state.title, this.state.upload)
+                .submitExam(this.state.title, this.state.hash)
                 .send({
                     from: accounts[0]
                 });
-            Router.pushRoute('/');
+
+            // Router.pushRoute('/');
         } catch (err) {
             this.setState({errorMessage: err.message});
         }
         this.setState({loading: false});
     }
 
-    renderUploadType() {
 
-        if (this.props.typeOfSubmission== 0) {
+    renderUploadType() {
+        if (this.props.typeOfSubmission == 0) {
             return <div>
                 <label>Upload File</label>
                 <Input value={this.state.upload}
                        type='file'
-                       onChange={event => this.setState({upload: event.target.value})}
+                       onChange={event => {
+                           this.setState({upload: event.target.value});
+                           event.preventDefault();
+                           const file = event.target.files[0];
+                           const reader = new window.FileReader();
+                           reader.readAsArrayBuffer(file);
+                           reader.onloadend = () => {
+                               this.setState({buffer: Buffer(reader.result)});
+                           }
+                       }}
                        action={{icon: 'upload icon'}}>
-                </Input></div>
+                </Input>
+            </div>
         } else {
             return <div>
                 <label>Upload Link</label>

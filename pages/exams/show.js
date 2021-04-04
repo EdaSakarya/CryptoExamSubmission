@@ -4,7 +4,6 @@ import Exam from '../../ethereum/exam';
 import {Progress, Card, Grid, Form, Button, Divider, Header, Input, Message} from 'semantic-ui-react';
 import {Link, Router} from '../../routes';
 import web3 from "../../ethereum/web3";
-import factory from "../../ethereum/factory";
 
 class ExamDetailsShow extends Component {
     state = {
@@ -13,7 +12,6 @@ class ExamDetailsShow extends Component {
         errormessage3: '',
         grade: '',
         comment: '',
-        download: '',
         loading: false
     };
 
@@ -21,7 +19,8 @@ class ExamDetailsShow extends Component {
         const exam = Exam(props.query.address);
         const details = await exam.methods.getDetailsOfExam().call();
         const accounts = await web3.eth.getAccounts();
-        console.log(accounts[0]);
+        const output = await exam.methods.downloadExam().call();
+        console.log('student', details[7]);
         return {
             account: accounts[0],
             address: props.query.address,
@@ -34,7 +33,8 @@ class ExamDetailsShow extends Component {
             comment: details[6],
             student: details[7],
             prof: details[8],
-            status: details[9]
+            status: details[9],
+            download: output
         };
     };
 
@@ -61,6 +61,7 @@ class ExamDetailsShow extends Component {
             student,
             prof
         } = this.props;
+
         const dateTime = new Date(parseInt(submissionTime));
 
         const items = [
@@ -124,12 +125,11 @@ class ExamDetailsShow extends Component {
         try {
             const accounts = await web3.eth.getAccounts();
             //console.log(accounts[0]);
-            const output = await exam.methods
+            await exam.methods
                 .setStatusInCorrection()
                 .send({
                     from: accounts[0]
                 });
-            this.setState({download: output});
         } catch (err) {
             this.setState({errormessage3: err.message});
         }
@@ -153,19 +153,23 @@ class ExamDetailsShow extends Component {
                                         download & upload
                                     </Header>
                                 </Divider>
-                                <Button onClick={this.getDownload}>Download</Button>
+                                <Link href={`https://ipfs.io/ipfs/${this.props.download}`} passHref={true}>
+                                    <Button>Download</Button>
+                                </Link>
                             </div>
                             }
                             <br/><br/>
-                            {professor == account ? null : (
-                                <div>{status < 2 && submissionTime < Date.now() &&
+                            {student == account &&
+                            <div>
+                                {/*{status < 2 && submissionTime > Date.now() &&*/}
                                 <Link route={`/exams/${this.props.address}/uploads`}>
                                     <a>
                                         <Button primary>Upload</Button>
                                     </a>
-                                </Link>}
-                                </div>
-                            )}
+                                </Link>
+                                {/*}*/}
+                            </div>
+                            }
                             <br/><br/>
                             {student == account ? null : (
                                 <div>
