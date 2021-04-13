@@ -28,7 +28,7 @@ class GradingIndex extends Component {
         this.setState({loading: true, errorMessage: ''});
         const exam = Exam(this.props.address);
         try {
-            const accounts = await web3.eth.getAccounts();
+            const accounts = await ethereum.request({ method: 'eth_accounts' });
             const gradeOut = await exam.methods
                 .setGradeAndComment(this.state.grade, this.state.comment)
                 .send({

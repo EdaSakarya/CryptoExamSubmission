@@ -26,7 +26,7 @@ class CommentingIndex extends Component {
         this.setState({loading: true, errorMessage: ''});
         const exam = Exam(this.props.address);
         try {
-            const accounts = await web3.eth.getAccounts();
+            const accounts = await ethereum.request({ method: 'eth_accounts' });
             // console.log(accounts[0]);
 
             if (this.state.comment != '') {

@@ -19,8 +19,10 @@ const typeOptions = [
 class NewExam extends Component {
 
     state = {
-        professor: '',
-        student: '',
+        professor1: [''],
+        professor2:'',
+        student1: [''],
+        student2: '',
         submissionType: '',
         date: '',
         timestamp: '',
@@ -43,12 +45,21 @@ class NewExam extends Component {
 
         this.setState({loading: true, errorMessage1: ''});
         try {
-            const accounts = await web3.eth.getAccounts();
-            console.log(accounts[0]);
+            const accounts = await ethereum.request({ method: 'eth_accounts' });
+            let profs, students;
+            profs = [this.state.professor2];
+            students = [this.state.student2];
+            if(this.state.professor1 != ''){
+                profs = [...this.state.professor2, this.state.professor1];
+            }
+            if(this.state.student1 != ''){
+                students = [...this.state.student2, this.state.student1];
+            }
+
             await factory.methods
-                .createExam(this.state.description, this.state.type, this.state.submissionType, this.state.subject, this.state.timestamp, this.state.student, this.state.professor)
-                //.createExam(this.state.description, this.state.type, 1, this.state.subject, this.state.timestamp, this.state.student, this.state.professor)
-                /*.createExam('Lektion 4 Aufgaben', 'Labor Aufgaben 1', 1 ,'ITSM Labor', 1629046800, 0xC0B6efb2Bd712884FD94ff410aE9Bd152Ae8fa8e, 0xCBB1BE6Ca524A4147f4bfa3D775fe095d9db2efC
+                 .createExam(this.state.description, this.state.type, this.state.submissionType, this.state.subject, this.state.timestamp, this.state.professor1, this.state.student1)
+                //.createExam(this.state.description, this.state.type, this.state.submissionType, this.state.subject, this.state.timestamp, [0xAeA63BcdC5b5fa6ED961CcfA72a4BA1686a71031], [0x63fC0944E5C43A0bCCa6772cf7F9E067C8Bc535D])
+                /*.createExam('Lektion 4 Aufgaben', 'Labor Aufgaben 1', 1 ,'ITSM Labor', 1629046800, 0xC0B6efb2Bd712884FD94ff410aE9Bd152Ae8fa8e, 0xCBB1BE6Ca524A4147f4bfa3D775fe095d9db2efC)
                 */
                 .send({
                     from: accounts[0]
@@ -65,12 +76,15 @@ class NewExam extends Component {
 
         this.setState({loading: true, errorMessage2: ''});
         try {
-            const accounts = await web3.eth.getAccounts();
+            const accounts = await ethereum.request({ method: 'eth_accounts' });
+            console.log(accounts);
+
             await factory.methods
                 .createUser(this.state.userType, this.state.userKey)
                 .send({
                     from: accounts[0]
                 });
+            console.log('hallo');
             // Router.pushRoute('/');
         } catch (err) {
             this.setState({errorMessage2: err.message});
@@ -109,14 +123,14 @@ class NewExam extends Component {
                     <Form onSubmit={this.onSubmit} error={!!this.state.errorMessage1}>
                         <Form.Field>
                             <label>Professor Address</label>
-                            <Input value={this.state.professor}
-                                   onChange={event => this.setState({professor: event.target.value})}
+                            <Input value={this.state.professor2}
+                                   onChange={event => this.setState({professor2: event.target.value})}
                             />
                         </Form.Field>
                         <Form.Field>
                             <label>Student Address</label>
-                            <Input value={this.state.student}
-                                   onChange={event => this.setState({student: event.target.value})}
+                            <Input value={this.state.student2}
+                                   onChange={event => this.setState({student2: event.target.value})}
                             />
                         </Form.Field>
                         <Select value={submissionType}
@@ -142,34 +156,6 @@ class NewExam extends Component {
                                 />
                             </Form.Field>
 
-                            {/* <DateInput
-                                name="dateTime"
-                                // placeholder="Date"
-                                clearable
-                                closable
-                                //label="Submission Date"
-                                //value={this.state.date}
-                                iconPosition="left"
-                                onChange={this.handleChangeTime}
-                            />
-                            <DateTimeInput
-                                name="dateTime"
-                                clearable
-                                closable
-                                markColor
-                                value={this.state.date}
-                                iconPosition="left"
-                                onChange={this.handleChangeTime}
-                            />*/}
-                            {/* <TimeInput
-                                name="time"
-                                //placeholder="Time"
-                                clearable
-                                closable
-                                //value={this.state.time}
-                                iconPosition="left"
-                                onChange={this.handleChangeTime}
-                            />*/}
 
                             <TextField
                                 id="datetime-local"

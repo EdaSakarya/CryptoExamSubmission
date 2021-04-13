@@ -37,7 +37,7 @@ class UploadIndex extends Component {
         const exam = Exam(this.props.address);
         this.setState({loading: true, errorMessage: ''});
         try {
-            const accounts = await web3.eth.getAccounts();
+            const accounts = await ethereum.request({ method: 'eth_accounts' });
             if (this.state.title == '') {
                 this.setState({title: this.state.upload})
             }

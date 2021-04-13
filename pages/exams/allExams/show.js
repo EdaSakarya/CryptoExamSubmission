@@ -8,25 +8,38 @@ import Layout from "../../../components/Layout";
 import Router from "next/router";
 
 class ShowAllOf extends Component {
-        static async getInitialProps() {
-            const accounts = await web3.eth.getAccounts();
-            console.log(accounts[0]);
-            const exams = await factory.methods.getExamsOfUser(accounts[0]).call();
-            if(accounts[0] =='0x5f2824bf7B90A38852b7765039ad6Cf760c16858'){
-                Router.push('/exams/new');
-            }
-            return {exams};
+    static async getInitialProps() {
+        // const accounts = await web3.eth.getAccounts();
+        const accounts = await ethereum.request({ method: 'eth_accounts' });
+        const exams = await factory.methods.getExamsOfUser(accounts[0]).call();
+        console.log(exams);
+        const examDescriptions = await factory.methods.getExamsDescriptionsOfUser(accounts[0]).call();
+        const admin= 0x5f2824bf7b90a38852b7765039ad6cf760c16858;
+        if(accounts[0] == admin){
+            Router.push('/exams/new');
         }
+        return {exams, examDescriptions};
+    }
     renderExams() {
-        const items = this.props.exams.map(address => {
+        const itemAddress = this.props.exams.map(address => {
+            console.log(address);
             return {
-                header: address,
-                description: (<Link route={`/exams/${address}`}>
+                address
+            };
+        });
+        let i= -1;
+        const items = this.props.examDescriptions.map(description => {
+            i++;
+            console.log('Each items address',itemAddress[i]);
+            return {
+                header: description,
+                description: (<Link route={`/exams/${itemAddress[i].route}`}>
                     <a>View Exam</a>
                 </Link>),
                 fluid: true
             };
         });
+
         if (!items[0]) {
             return <div>'Keine Einträge'</div>
         }

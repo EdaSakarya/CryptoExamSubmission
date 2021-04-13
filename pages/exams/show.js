@@ -3,7 +3,8 @@ import Layout from "../../components/Layout";
 import Exam from '../../ethereum/exam';
 import {Progress, Card, Grid, Form, Button, Divider, Header, Input, Message} from 'semantic-ui-react';
 import {Link, Router} from '../../routes';
-import web3 from "../../ethereum/web3";
+import Web3 from 'web3';
+import web3js from "../../ethereum/web3";
 
 class ExamDetailsShow extends Component {
     state = {
@@ -16,25 +17,29 @@ class ExamDetailsShow extends Component {
     };
 
     static async getInitialProps(props) {
+        console.log(props.query.address);
         const exam = Exam(props.query.address);
+        const accounts = await ethereum.request({ method: 'eth_accounts' });
+         console.log(accounts[0]);
         const details = await exam.methods.getDetailsOfExam().call();
-        const accounts = await web3.eth.getAccounts();
-        const output = await exam.methods.downloadExam().call();
-        console.log('student', details[7]);
+       // const output = await exam.methods.downloadExam().call();
+        //console.log('student', details[7]);
+        const icc= 'sd';
         return {
-            account: accounts[0],
-            address: props.query.address,
-            description: details[0],
-            subject: details[1],
-            typeOfWork: details[2],
-            typeOfSubmission: details[3],
-            submissionTime: details[4],
-            grade: details[5],
-            comment: details[6],
-            student: details[7],
-            prof: details[8],
-            status: details[9],
-            download: output
+            icc
+            // account: accounts[0],
+            // address: props.query.address,
+            // description: details[0],
+            // subject: details[1],
+            // typeOfWork: details[2],
+            // typeOfSubmission: details[3],
+            // submissionTime: details[4],
+            // grade: details[5],
+            // comment: details[6],
+            // student: details[7],
+            // prof: details[8],
+            // status: details[9]
+            // // download: output
         };
     };
 
@@ -123,7 +128,7 @@ class ExamDetailsShow extends Component {
         event.preventDefault();
         const exam = Exam(this.props.address);
         try {
-            const accounts = await web3.eth.getAccounts();
+            const accounts = await web3js.eth.getAccounts();
             //console.log(accounts[0]);
             await exam.methods
                 .setStatusInCorrection()
