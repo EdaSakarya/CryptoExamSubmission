@@ -1,10 +1,37 @@
 import React, {Component} from 'react';
 import Layout from "../../../components/Layout";
-import {Button, Form, Input, Message, Table} from "semantic-ui-react";
-import {Link, Router} from "../../../routes";
+import {Button, Form, Input, Message} from "semantic-ui-react";
 import Exam from '../../../ethereum/exam';
-import web3 from "../../../ethereum/web3"
 
+export async function getStaticPaths() {
+    return {
+        fallback: true,
+        paths: [
+            {
+                params: {
+                    grading: '0x507db6D06C405990489c8dE1bC44500863391BE2',
+                },
+            },
+            {
+                params: {
+                    grading: '0x507db6D06C405990489c8dE1bC44500863391BE2',
+                },
+            }, {
+                params: {
+                    grading: '0xC5f588298672077c28d69c287F3458ab0ADBe3A1',
+                },
+            },
+        ],
+    }
+}
+
+export async function getStaticProps(context) {
+    return {
+        props: {
+            address: context.params.grading
+        }
+    };
+}
 class GradingIndex extends Component {
 
     state = {
@@ -14,27 +41,18 @@ class GradingIndex extends Component {
         loading: false
     };
 
-    static async getInitialProps(props) {
-        const exam = Exam(props.query.address);
-        const details = await exam.methods.getDetailsOfExam().call();
-        return {
-            address: props.query.address
-        };
-    }
-
     onSubmit = async (event) => {
         event.preventDefault();
 
         this.setState({loading: true, errorMessage: ''});
         const exam = Exam(this.props.address);
         try {
-            const accounts = await ethereum.request({ method: 'eth_accounts' });
+            const accounts = await ethereum.request({method: 'eth_accounts'});
             const gradeOut = await exam.methods
                 .setGradeAndComment(this.state.grade, this.state.comment)
                 .send({
                     from: accounts[0]
                 });
-            /*Router.pushRoute('/show');*/
         } catch (err) {
             this.setState({errorMessage: err.message});
         }
@@ -44,7 +62,7 @@ class GradingIndex extends Component {
     render() {
         return (
             <Layout>
-                <h1> Grading & leave a comment </h1>
+                <h1> Grade & leave a comment </h1>
                 <h5>{this.props.subject}</h5>
                 <Form onSubmit={this.onSubmit} error={!!this.state.errorMessage}>
                     <Form.Field>

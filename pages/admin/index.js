@@ -4,12 +4,11 @@ import {Button, Divider, Form, Header, Icon, Input, Message} from 'semantic-ui-r
 import Select from 'react-select';
 import factory from '../../ethereum/factory';
 import web3 from '../../ethereum/web3';
-import {Router} from '../../routes';
 import TextField from '@material-ui/core/TextField';
 
 const userOptions = [
-    {value: 0, label: 'Student'},
-    {value: 1, label: 'Professor'},
+    {value: 0, label: 'Professor'},
+    {value: 1, label: 'Student'},
 ];
 const typeOptions = [
     {value: 0, label: 'File'},
@@ -46,6 +45,7 @@ class NewExam extends Component {
         this.setState({loading: true, errorMessage1: ''});
         try {
             const accounts = await ethereum.request({ method: 'eth_accounts' });
+            console.log('admin', accounts[0]);
             let profs, students;
             profs = [this.state.professor2];
             students = [this.state.student2];
@@ -55,16 +55,14 @@ class NewExam extends Component {
             if(this.state.student1 != ''){
                 students = [...this.state.student2, this.state.student1];
             }
+            console.log('Student',this.state.student2);
 
             await factory.methods
-                 .createExam(this.state.description, this.state.type, this.state.submissionType, this.state.subject, this.state.timestamp, this.state.professor1, this.state.student1)
-                //.createExam(this.state.description, this.state.type, this.state.submissionType, this.state.subject, this.state.timestamp, [0xAeA63BcdC5b5fa6ED961CcfA72a4BA1686a71031], [0x63fC0944E5C43A0bCCa6772cf7F9E067C8Bc535D])
-                /*.createExam('Lektion 4 Aufgaben', 'Labor Aufgaben 1', 1 ,'ITSM Labor', 1629046800, 0xC0B6efb2Bd712884FD94ff410aE9Bd152Ae8fa8e, 0xCBB1BE6Ca524A4147f4bfa3D775fe095d9db2efC)
-                */
+                .createExam(this.state.description, this.state.type, this.state.submissionType, this.state.subject, this.state.timestamp, students, profs)
                 .send({
                     from: accounts[0]
                 });
-            // Router.pushRoute('/');
+
         } catch (err) {
             this.setState({errorMessage1: err.message});
         }
@@ -77,7 +75,7 @@ class NewExam extends Component {
         this.setState({loading: true, errorMessage2: ''});
         try {
             const accounts = await ethereum.request({ method: 'eth_accounts' });
-            console.log(accounts);
+            console.log(this.state.userKey);
 
             await factory.methods
                 .createUser(this.state.userType, this.state.userKey)
@@ -85,7 +83,6 @@ class NewExam extends Component {
                     from: accounts[0]
                 });
             console.log('hallo');
-            // Router.pushRoute('/');
         } catch (err) {
             this.setState({errorMessage2: err.message});
         }
@@ -161,7 +158,6 @@ class NewExam extends Component {
                                 id="datetime-local"
                                 label="Next appointment"
                                 type="datetime-local"
-                                defaultValue="2017-05-24T10:30"
                                 InputLabelProps={{
                                     shrink: true,
                                 }}
