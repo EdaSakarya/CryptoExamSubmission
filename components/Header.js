@@ -1,20 +1,20 @@
 import React from 'react';
 import {Menu} from 'semantic-ui-react';
-import {Link} from '../routes';
+import Link from "next/link";
 
 export default () => {
     return (
         <Menu style={{marginTop: '10px'}}>
-            <Link route="/">
+            <Link href="/">
                 <a className="item">
                     HS-Offenburg
                 </a>
             </Link>
             <Menu.Menu position="right">
-                <Link route="/">
+                <Link href="/">
                     <a className="item">All Exams</a>
                 </Link>
-                <Link route="/exams/new">
+                <Link href="/admin">
                     <a className="item">+</a>
                 </Link>
             </Menu.Menu>
